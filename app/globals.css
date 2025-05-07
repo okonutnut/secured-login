@@ -1,2 +1,8 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+    themes: business;
+}
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
