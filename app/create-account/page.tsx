@@ -4,7 +4,7 @@ import FormInput from "@/components/form-input";
 import Logo from "@/components/logo";
 import NonFormInput from "@/components/nonform-input";
 import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { checkUsernameExists, createAccountAction } from "../actions/register";
@@ -16,6 +16,7 @@ import { generateRecoveryCodes } from "@/lib/recovery-codes";
 export default function RegisterPage() {
   const router = useRouter();
 
+  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [isError, setIsError] = useState(false);
   const [isExist, setIsExist] = useState("");
   const [passMsg, setPassMsg] = useState("");
@@ -31,31 +32,24 @@ export default function RegisterPage() {
     fetchCodes();
   }, []);
 
-  const submitBtnRef = useRef<HTMLButtonElement>(null);
   const form = useForm();
 
   // FORM SUBMIT
-  async function onSubmit(data: unknown) {
-    if (submitBtnRef.current) {
-      submitBtnRef.current.disabled = true;
-    }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function onSubmit(data: any) {
+    setState("loading");
 
     const res = await createAccountAction({
       ...data,
       recoveryCodes: codes,
     } as RegisterCredentials);
-    console.log(res, "res");
 
     if (res) {
-      if (submitBtnRef.current) {
-        submitBtnRef.current.disabled = true;
-      }
+      setState("idle");
       setIsError(false);
       setOpenModal(true);
     } else {
-      if (submitBtnRef.current) {
-        submitBtnRef.current.disabled = false;
-      }
+      setState("error");
       setIsError(true);
     }
   }
@@ -68,14 +62,10 @@ export default function RegisterPage() {
     await checkUsernameExists(username).then((res) => {
       console.log(res, "res check username");
       if (res) {
-        if (submitBtnRef.current) {
-          submitBtnRef.current.disabled = true;
-        }
+        setState("error");
         setIsExist("Username already exists");
       } else {
-        if (submitBtnRef.current) {
-          submitBtnRef.current.disabled = false;
-        }
+        setState("idle");
         setIsExist("Username is available");
       }
     });
@@ -153,20 +143,21 @@ export default function RegisterPage() {
                     setConfPass("Password do not match");
                   } else {
                     setConfPass("");
-                    if (submitBtnRef.current) {
-                      submitBtnRef.current.disabled = false;
-                    }
+                    setState("idle");
                   }
                 }}
                 optional={confPass}
               />
               <button
                 type="submit"
-                disabled={true}
-                ref={submitBtnRef}
+                disabled={state === "loading"}
                 className="btn bg-orange-400 text-white uppercase w-full"
               >
-                Create
+                {state === "loading" ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Create Account"
+                )}
               </button>
               <span className="text-xs mt-2">
                 Already have an account?{" "}

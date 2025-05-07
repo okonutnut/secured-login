@@ -9,3 +9,22 @@ export type RegisterCredentials = {
   fullname: string;
   recoveryCodes: string[];
 }
+
+export type UserType = {
+  id: string;
+  username: string;
+  fullname: string;
+  recoveryCodes: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type AccountRecoveryCredentials = {
+  username: string;
+  code: string;
+}
+
+export type ChangePasswordCredentials = {
+  username: string;
+  password: string;
+}

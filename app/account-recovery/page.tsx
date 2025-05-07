@@ -3,40 +3,41 @@
 import FormInput from "@/components/form-input";
 import Logo from "@/components/logo";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { LoginAction } from "../actions/login";
-import { LoginCredentials } from "@/types/credentials";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { RecoveryAction } from "../actions/recovery";
+import { AccountRecoveryCredentials } from "@/types/credentials";
+import ErrorAlert from "@/components/error-alert";
+import ChangePasswordModal from "./change-pass-modal";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const form = useForm();
-
+export default function RegisterPage() {
+  const [username, setUsername] = useState<string>("");
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [msg, setMsg] = useState<string>("");
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const form = useForm();
 
+  // FORM SUBMIT
   async function onSubmit(data: unknown) {
+    if (typeof data === "object" && data !== null && "username" in data) {
+      setUsername(data.username as string);
+    }
     setState("loading");
-
-    const res = await LoginAction(data as LoginCredentials);
-    if (res?.success == true) {
+    console.log("Form data:", data);
+    const res = await RecoveryAction(data as AccountRecoveryCredentials);
+    if (res.success == true) {
       setState("idle");
-      router.push("/home");
+      setOpenModal(true);
     } else {
       setState("error");
-      setMsg(res?.message as string);
+      setMsg(res.message);
+      console.log("Error:", res.message);
     }
   }
   return (
     <>
-      {state === "error" && (
-        <div className="alert alert-error shadow-lg absolute top-0 left-0 w-full z-50">
-          <div>
-            <span>{msg}</span>
-          </div>
-        </div>
-      )}
+      {state === "error" && <ErrorAlert message={msg} />}
+      <ChangePasswordModal isOpen={openModal} username={username} />
       <section className="h-screen w-screen flex justify-center items-center">
         <div className="card w-96 bg-base-100 card-xl shadow-lg">
           <div className="card-body">
@@ -51,44 +52,36 @@ export default function LoginPage() {
               className="flex-col justify-center items-center card-actions gap-1 pt-10"
             >
               <p className="mx-auto text-xl font-bold uppercase text-center">
-                Sign in
+                Account Recovery
               </p>
               <FormInput
                 label="Username"
                 placeholder="Type here..."
                 name="username"
-                type="text"
                 form={form}
               />
               <FormInput
-                label="Password"
+                label="Recovery Code"
                 placeholder="Type here..."
-                name="password"
-                type="password"
+                name="code"
                 form={form}
               />
               <button
-                disabled={state === "loading"}
                 type="submit"
+                disabled={state === "loading"}
                 className="btn bg-orange-400 text-white uppercase w-full"
               >
                 {state === "loading" ? (
                   <span className="loading loading-spinner loading-sm"></span>
                 ) : (
-                  "Login"
+                  "Submit"
                 )}
               </button>
-              <span className="text-xs mt-2">
-                <Link href={"/account-recovery"} className="btn-link">
-                  Forgot password?
-                </Link>
-              </span>
-              <span className="text-xs mt-2">
-                No account?{" "}
-                <Link href={"/create-account"} className="btn-link">
-                  Sign Up
-                </Link>
-              </span>
+              <Link href={"/"} className="btn-link w-full">
+                <button className="btn btn-outline uppercase w-full">
+                  Back
+                </button>
+              </Link>
             </form>
           </div>
         </div>

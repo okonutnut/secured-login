@@ -17,7 +17,7 @@ export default function NonFormInput({
       <legend className="fieldset-legend">{label}</legend>
       <input
         type={type || "text"}
-        className="input"
+        className="input w-full"
         placeholder={placeholder}
         onChange={onChange}
       />

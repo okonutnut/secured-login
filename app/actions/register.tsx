@@ -1,9 +1,10 @@
 "use server";
 
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, setDoc, getDocs, doc, addDoc } from "firebase/firestore";
 import { RegisterCredentials } from "@/types/credentials";
 import { firebasedb } from "@/lib/firebase";
 import { hashCode } from "@/lib/hash";
+import { cookies } from "next/headers";
 
 export async function createAccountAction({
   fullname,
@@ -12,13 +13,26 @@ export async function createAccountAction({
   recoveryCodes,
 }: RegisterCredentials): Promise<boolean> {
   try {
+    const cookieStore = await cookies();
     // Save User to Firestore
-    const docRef = await addDoc(collection(firebasedb, "users"), {
+    const docRef = await doc(collection(firebasedb, "users"));
+    const generatedId = docRef.id;
+
+    const userObject = {
+      id: generatedId,
       fullname: fullname,
       username: username,
-      password: await hashCode(password), // Hash the password before saving it
+      password: await hashCode(password),
+      loginAttempts: 0,
+      isLocked: false,
+      lockTimestamp: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setDoc(docRef, {
+      ...userObject,
     });
-    console.log("Document written with ID: ", docRef.id);
 
     // Save Recovery Codes to Firestore with the same ID as the user
     const recoveryCodesRef = collection(
@@ -27,6 +41,7 @@ export async function createAccountAction({
       docRef.id,
       "recoveryCodes"
     );
+
     // Hash the recovery codes before saving them
     const hashedCodes = await Promise.all(
       recoveryCodes.map((code) => hashCode(code))
@@ -35,8 +50,14 @@ export async function createAccountAction({
       addDoc(recoveryCodesRef, { code })
     );
     await Promise.all(recoveryCodesPromises);
-    console.log("Recovery codes added successfully");
 
+    // Save the user object to cookies
+    cookieStore.set({
+      name: "user",
+      value: JSON.stringify(userObject),
+      httpOnly: true,
+      secure: true,
+    });
     return true;
   } catch (e) {
     console.error("Error adding document: ", e);

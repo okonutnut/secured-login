@@ -25,7 +25,7 @@ export default function FormInput({
       <legend className="fieldset-legend">{label}</legend>
       <input
         type={type || "text"}
-        className="input"
+        className="input w-full"
         placeholder={placeholder}
         {...form.register(name, { required: required })}
         onChange={onChange}

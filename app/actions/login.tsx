@@ -1,6 +1,6 @@
 "use server";
 
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, setDoc, getDocs, query, where } from "firebase/firestore";
 import { LoginCredentials } from "@/types/credentials";
 import { firebasedb } from "@/lib/firebase";
 import { compareCode } from "@/lib/hash";
@@ -9,6 +9,7 @@ import { cookies } from "next/headers";
 export async function LoginAction({ username, password }: LoginCredentials) {
   try {
     const cookieStore = await cookies();
+
     const usersRef = collection(firebasedb, "users");
     const q = query(usersRef, where("username", "==", username));
     const snapshot = await getDocs(q);
@@ -25,22 +26,62 @@ export async function LoginAction({ username, password }: LoginCredentials) {
     const user = doc.data();
 
     const match = await compareCode(password, user.password);
-    cookieStore.set({
-      name: "user",
-      value: JSON.stringify(user),
-      httpOnly: true,
-      secure: true,
-      path: "/",
-      maxAge: 60 * 60 * 24, // 1 day
-      sameSite: "strict",
-    });
+
+    if (user.isLocked) {
+      const lockDuration = 15 * 60 * 1000; // 15 minutes
+      const currentTime = new Date().getTime();
+      const lockTimestamp = user.lockTimestamp
+        ? user.lockTimestamp.toDate().getTime()
+        : 0;
+      if (currentTime - lockTimestamp < lockDuration) {
+        return {
+          success: false,
+          message: "Account is locked. Try again later.",
+        };
+      } else {
+        // Unlock the account after the lock duration
+        await setDoc(doc.ref, {
+          ...user,
+          isLocked: false,
+          loginAttempts: 0,
+          lockTimestamp: null,
+        });
+      }
+    }
 
     if (!match) {
+      // Increment login attempts and check if user is locked
+      const loginAttempts = user.loginAttempts + 1;
+      const isLocked = loginAttempts >= 5; // Lock after 3 failed attempts
+      const lockTimestamp = isLocked ? new Date() : null;
+      await setDoc(doc.ref, {
+        ...user,
+        loginAttempts: loginAttempts,
+        isLocked: isLocked,
+        lockTimestamp: lockTimestamp,
+      });
+
       return {
         success: false,
         message: "Wrong password",
       };
     }
+
+    // After successful login, reset login attempts
+    await setDoc(doc.ref, {
+      ...user,
+      loginAttempts: 0,
+      isLocked: false,
+      lockTimestamp: null,
+    });
+
+    cookieStore.set({
+      name: "user",
+      value: JSON.stringify(user),
+      httpOnly: true,
+      secure: true,
+    });
+
     return {
       success: true,
       message: "Login successful",
