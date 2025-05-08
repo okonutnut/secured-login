@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
     return Response.redirect(new URL("/login", origin));
   }
 
-  if (user && ["/", "/login"].includes(pathname)) {
+  if (user && ["/", "/login", "/account-recovery"].includes(pathname)) {
     return Response.redirect(new URL("/home", origin));
   }
 }

@@ -1,10 +1,11 @@
 import FormInput from "@/components/form-input";
 import NonFormInput from "@/components/nonform-input";
-import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { ChangePassword } from "../actions/recovery";
-import { ChangePasswordCredentials } from "@/types/credentials";
+import { ChangePassword, SaveUserData } from "../actions/recovery";
+import { useRouter } from "next/navigation";
+import { LoginCredentials } from "@/types/credentials";
+import ErrorAlert from "@/components/error-alert";
 
 type ChangePasswordModalProps = {
   username: string;
@@ -16,17 +17,42 @@ export default function ChangePasswordModal({
   isOpen,
   onClose,
 }: ChangePasswordModalProps) {
+  const router = useRouter();
+  const form = useForm();
+
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const [passMsg, setPassMsg] = useState("");
   const [confPass, setConfPass] = useState("");
 
-  const form = useForm();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function onSubmit(data: any) {
+    setState("loading");
 
-  async function onSubmit(data: unknown) {
-    console.log("Form data:", { ...data, username: username });
+    const password = data.password as string;
+    const res = await ChangePassword({
+      password: password,
+      username: username,
+    } as LoginCredentials);
+
+    if (res.success === true) {
+      setState("idle");
+      router.push("/home");
+    } else {
+      setState("error");
+      setErrorMsg(res.message);
+    }
+  }
+
+  async function skipChangePass() {
+    setState("loading");
+    await SaveUserData(username);
+    setState("idle");
+    router.push("/home");
   }
   return (
     <>
+      {state === "error" && <ErrorAlert message={errorMsg} />}
       <dialog
         id="change-passowrd-modal"
         open={isOpen}
@@ -88,9 +114,12 @@ export default function ChangePasswordModal({
             </button>
           </form>
           <p className="py-4 text-xs">Or skip for now</p>
-          <Link href={"/"} className="btn-link w-full">
-            <button className="btn btn-outline uppercase w-full">Skip</button>
-          </Link>
+          <button
+            onClick={() => skipChangePass()}
+            className="btn btn-outline uppercase w-full"
+          >
+            Skip
+          </button>
         </div>
       </dialog>
     </>

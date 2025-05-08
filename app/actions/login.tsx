@@ -77,7 +77,10 @@ export async function LoginAction({ username, password }: LoginCredentials) {
 
     cookieStore.set({
       name: "user",
-      value: JSON.stringify(user),
+      value: JSON.stringify({
+        fullname: user.fullname,
+        id: doc.id,
+      }),
       httpOnly: true,
       secure: true,
     });
