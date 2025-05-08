@@ -1,14 +1,24 @@
 "use server";
 
 import { collection, setDoc, getDocs, query, where } from "firebase/firestore";
-import { LoginCredentials } from "@/types/credentials";
+import { AuditLogsType, LoginCredentials } from "@/types/credentials";
 import { firebasedb } from "@/lib/firebase";
 import { compareCode } from "@/lib/hash";
 import { cookies } from "next/headers";
+import { setAuditLog } from "./audit";
 
 export async function LoginAction({ username, password }: LoginCredentials) {
   try {
     const cookieStore = await cookies();
+    const log: AuditLogsType = {
+      id: "",
+      userId: "",
+      username: username,
+      ipAddress: "",
+      action: "Login",
+      status: "",
+      timestamp: new Date(),
+    };
 
     const usersRef = collection(firebasedb, "users");
     const q = query(usersRef, where("username", "==", username));
@@ -25,6 +35,8 @@ export async function LoginAction({ username, password }: LoginCredentials) {
     const doc = snapshot.docs[0];
     const user = doc.data();
 
+    log.userId = doc.id;
+
     const match = await compareCode(password, user.password);
 
     if (user.isLocked) {
@@ -34,6 +46,8 @@ export async function LoginAction({ username, password }: LoginCredentials) {
         ? user.lockTimestamp.toDate().getTime()
         : 0;
       if (currentTime - lockTimestamp < lockDuration) {
+        log.status = "failed";
+        await setAuditLog(log);
         return {
           success: false,
           message: "Account is locked. Try again later.",
@@ -60,7 +74,8 @@ export async function LoginAction({ username, password }: LoginCredentials) {
         isLocked: isLocked,
         lockTimestamp: lockTimestamp,
       });
-
+      log.status = "failed";
+      await setAuditLog(log);
       return {
         success: false,
         message: "Wrong password",
@@ -85,6 +100,8 @@ export async function LoginAction({ username, password }: LoginCredentials) {
       secure: true,
     });
 
+    log.status = "success";
+    await setAuditLog(log);
     return {
       success: true,
       message: "Login successful",

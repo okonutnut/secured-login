@@ -1,10 +1,11 @@
 "use server";
 
 import { collection, setDoc, getDocs, doc, addDoc } from "firebase/firestore";
-import { RegisterCredentials } from "@/types/credentials";
+import { AuditLogsType, RegisterCredentials } from "@/types/credentials";
 import { firebasedb } from "@/lib/firebase";
 import { hashCode } from "@/lib/hash";
 import { cookies } from "next/headers";
+import { setAuditLog } from "./audit";
 
 export async function createAccountAction({
   fullname,
@@ -14,9 +15,18 @@ export async function createAccountAction({
 }: RegisterCredentials): Promise<boolean> {
   try {
     const cookieStore = await cookies();
+    const log: AuditLogsType = {
+      userId: "",
+      username: username,
+      ipAddress: "",
+      action: "register",
+      status: "",
+      timestamp: new Date(),
+    };
     // Save User to Firestore
     const docRef = await doc(collection(firebasedb, "users"));
     const generatedId = docRef.id;
+    log.userId = generatedId;
 
     const userObject = {
       id: generatedId,
@@ -58,6 +68,8 @@ export async function createAccountAction({
       httpOnly: true,
       secure: true,
     });
+    log.status = "success";
+    await setAuditLog(log);
     return true;
   } catch (e) {
     console.error("Error adding document: ", e);

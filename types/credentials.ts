@@ -28,3 +28,13 @@ export type ChangePasswordCredentials = {
   username: string;
   password: string;
 }
+
+export type AuditLogsType = {
+  id?: string;
+  userId: string;
+  username: string;
+  ipAddress: string;
+  action: string;
+  status: string;
+  timestamp: Date;
+}
