@@ -36,7 +36,7 @@ export default function WordPhraseModal({
           <button
             className="btn btn-sm btn-outline w-full mt-4"
             onClick={() => {
-              navigator.clipboard.writeText(codes.join("\n"));
+              navigator.clipboard.writeText(codes ? codes.join("\n") : "");
               alert("Recovery codes copied to clipboard.");
             }}
           >
