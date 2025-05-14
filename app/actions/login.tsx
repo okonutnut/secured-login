@@ -9,6 +9,7 @@ import { setAuditLog } from "./audit";
 
 export async function LoginAction({ username, password }: LoginCredentials) {
   try {
+    let isAdmin = false;
     const cookieStore = await cookies();
     const log: AuditLogsType = {
       id: "",
@@ -36,10 +37,17 @@ export async function LoginAction({ username, password }: LoginCredentials) {
     const user = doc.data();
 
     log.userId = doc.id;
+    isAdmin = user.role == "admin" ? true : false;
 
     const match = await compareCode(password, user.password);
+    if (!match && isAdmin) {
+      return {
+        success: false,
+        message: "Wrong password",
+      };
+    }
 
-    if (user.isLocked) {
+    if (user.isLocked && !isAdmin) {
       const lockDuration = 15 * 60 * 1000; // 15 minutes
       const currentTime = new Date().getTime();
       const lockTimestamp = user.lockTimestamp
@@ -63,7 +71,7 @@ export async function LoginAction({ username, password }: LoginCredentials) {
       }
     }
 
-    if (!match) {
+    if (!match && !isAdmin) {
       // Increment login attempts and check if user is locked
       const loginAttempts = user.loginAttempts + 1;
       const isLocked = loginAttempts >= 5; // Lock after 3 failed attempts

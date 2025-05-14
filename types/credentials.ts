@@ -7,6 +7,7 @@ export type RegisterCredentials = {
   username: string;
   password: string;
   fullname: string;
+  role: string;
   recoveryCodes: string[];
 }
 
@@ -14,6 +15,7 @@ export type UserType = {
   id: string;
   username: string;
   fullname: string;
+  role: string;
   recoveryCodes: string[];
   createdAt: Date;
   updatedAt: Date;

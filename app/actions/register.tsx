@@ -33,6 +33,7 @@ export async function createAccountAction({
       fullname: fullname,
       username: username,
       password: await hashCode(password),
+      role: "user",
       loginAttempts: 0,
       isLocked: false,
       lockTimestamp: null,
