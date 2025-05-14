@@ -35,8 +35,22 @@ export type AuditLogsType = {
   id?: string;
   userId: string;
   username: string;
-  ipAddress: string;
+  ipAddress?: string;
   action: string;
   status: string;
   timestamp: Date;
+}
+
+export type RegisteredUserType = {
+  id?: string;
+  username: string;
+  password: string;
+  fullname: string;
+  role: string;
+  isLocked: boolean;
+  loginAttempts: number;
+  lockTimestamp: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  recoveryCodes: string[];
 }

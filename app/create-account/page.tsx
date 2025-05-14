@@ -10,15 +10,16 @@ import { useRouter } from "next/navigation";
 import { checkUsernameExists, createAccountAction } from "../actions/register";
 import { RegisterCredentials } from "@/types/credentials";
 import WordPhraseModal from "./word-phrase-modal";
-import ErrorAlert from "@/components/error-alert";
 import { generateRecoveryCodes } from "@/lib/recovery-codes";
+import AlertMessage from "@/components/alert";
+import { passwordPolicy } from "@/lib/utils";
 
 export default function RegisterPage() {
   const router = useRouter();
 
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
-  const [isError, setIsError] = useState(false);
-  const [isExist, setIsExist] = useState("");
+  const [isValid, setIsValid] = useState(false);
+  const [isExist, setIsExist] = useState<{ error: boolean; msg: string }>();
   const [passMsg, setPassMsg] = useState("");
   const [confPass, setConfPass] = useState("");
   const [openModal, setOpenModal] = useState(false);
@@ -46,40 +47,41 @@ export default function RegisterPage() {
 
     if (res) {
       setState("idle");
-      setIsError(false);
       setOpenModal(true);
     } else {
       setState("error");
-      setIsError(true);
     }
   }
 
   // CHECK USERNAME AVAILABILITY
   async function checkUsername(username: string) {
     if (username.length === 0) {
-      setIsExist("");
+      setIsExist({ error: true, msg: "Username is required" });
+      return;
     }
     await checkUsernameExists(username).then((res) => {
       console.log(res, "res check username");
       if (res) {
-        setState("error");
-        setIsExist("Username already exists");
+        setIsExist({ error: true, msg: "Username already exists" });
       } else {
-        setState("idle");
-        setIsExist("Username is available");
+        setIsExist({ error: false, msg: "" });
       }
     });
+    return;
   }
+
   return (
     <>
-      {isError && <ErrorAlert message="Error on creating your account." />}
+      {state == "error" && (
+        <AlertMessage type="error" message="Error on creating your account." />
+      )}
       <WordPhraseModal
         codes={codes}
         isOpen={openModal}
         onClose={() => router.push("/login")}
       />
       <section className="h-screen w-screen flex justify-center items-center">
-        <div className="card w-96 bg-base-100 card-xl shadow-lg">
+        <div className="card w-[500px] bg-base-100 card-xl shadow-lg">
           <div className="card-body">
             <span className="card-title mx-auto">
               <Logo />
@@ -104,7 +106,7 @@ export default function RegisterPage() {
                 label="Username"
                 placeholder="Type here..."
                 name="username"
-                optional={isExist}
+                optional={isExist?.msg}
                 form={form}
                 onChange={(e) => {
                   checkUsername(e.target.value);
@@ -118,17 +120,12 @@ export default function RegisterPage() {
                 optional={passMsg}
                 form={form}
                 onChange={(e) => {
-                  const password = e.target.value;
-                  if (password.length < 8) {
-                    setPassMsg("Must be at least 8 characters");
-                  } else if (!/[A-Z]/.test(password)) {
-                    setPassMsg("Must include at least one uppercase letter");
-                  } else if (!/[a-z]/.test(password)) {
-                    setPassMsg("Must include at least one lowercase letter");
-                  } else if (!/\d/.test(password)) {
-                    setPassMsg("Must include at least one number");
-                  } else if (!/[@$!%*?&]/.test(password)) {
-                    setPassMsg("Must include at least one special character");
+                  const value = e.target.value;
+                  if (value.length < 8 && !passwordPolicy.test(value)) {
+                    setIsValid(false);
+                    setPassMsg(
+                      "Must be 8+ chars w/ uppercase, lowercase, number & symbol."
+                    );
                   } else {
                     setPassMsg("");
                   }
@@ -140,9 +137,11 @@ export default function RegisterPage() {
                 type="password"
                 onChange={(e) => {
                   if (e.target.value != form.getValues("password")) {
+                    setIsValid(false);
                     setConfPass("Password do not match");
                   } else {
                     setConfPass("");
+                    setIsValid(true);
                     setState("idle");
                   }
                 }}
@@ -150,8 +149,8 @@ export default function RegisterPage() {
               />
               <button
                 type="submit"
-                disabled={state === "loading"}
-                className="btn bg-orange-400 text-white uppercase w-full"
+                disabled={state === "loading" || !isValid || isExist?.error}
+                className="btn bg-orange-400 text-white uppercase w-full mt-4"
               >
                 {state === "loading" ? (
                   <span className="loading loading-spinner loading-sm"></span>

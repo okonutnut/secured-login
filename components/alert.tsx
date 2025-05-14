@@ -1,11 +1,12 @@
-type ErrorAlertProps = {
+type AlertMessageProps = {
+  type: "error" | "success" | "warning" | "info";
   message: string;
 };
-export default function ErrorAlert({ message }: ErrorAlertProps) {
+export default function AlertMessage({ type, message }: AlertMessageProps) {
   return (
     <div
       role="alert"
-      className="absolute top-0 left-0 right-0 alert alert-error"
+      className={"fixed bottom-0 left-0 right-0 alert alert-" + type}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

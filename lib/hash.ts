@@ -7,3 +7,7 @@ export async function hashCode(code: string): Promise<string> {
 export async function compareCode(code: string, hash: string): Promise<boolean> {
   return await bcrypt.compare(code, hash);
 }
+
+export async function decodeCode(code: string): Promise<string> {
+  return await bcrypt.hash(code, 10);
+}

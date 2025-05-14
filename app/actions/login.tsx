@@ -6,6 +6,7 @@ import { firebasedb } from "@/lib/firebase";
 import { compareCode } from "@/lib/hash";
 import { cookies } from "next/headers";
 import { setAuditLog } from "./audit";
+import { decrypt, encrypt } from "@/lib/encrypt";
 
 export async function LoginAction({ username, password }: LoginCredentials) {
   try {
@@ -100,10 +101,12 @@ export async function LoginAction({ username, password }: LoginCredentials) {
 
     cookieStore.set({
       name: "user",
-      value: JSON.stringify({
-        fullname: user.fullname,
-        id: doc.id,
-      }),
+      value: await encrypt(
+        JSON.stringify({
+          fullname: user.fullname,
+          id: doc.id,
+        })
+      ),
       httpOnly: true,
       secure: true,
     });
@@ -147,7 +150,7 @@ export async function GetCurrentUser() {
     if (!user) {
       return null;
     }
-    return JSON.parse(user.value);
+    return JSON.parse(await decrypt(user.value));
   } catch (error) {
     console.error("Error getting current user:", error);
     return null;

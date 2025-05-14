@@ -8,6 +8,8 @@ import { LoginAction } from "../actions/login";
 import { LoginCredentials } from "@/types/credentials";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AlertMessage from "@/components/alert";
+import { passwordPolicy } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function LoginPage() {
 
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [msg, setMsg] = useState<string>("");
+  const [isValid, setIsValid] = useState(false);
 
   async function onSubmit(data: unknown) {
     setState("loading");
@@ -30,13 +33,7 @@ export default function LoginPage() {
   }
   return (
     <>
-      {state === "error" && (
-        <div className="alert alert-error shadow-lg absolute top-0 left-0 w-full z-50">
-          <div>
-            <span>{msg}</span>
-          </div>
-        </div>
-      )}
+      {state === "error" && <AlertMessage type="error" message={msg} />}
       <section className="h-screen w-screen flex justify-center items-center">
         <div className="card w-96 bg-base-100 card-xl shadow-lg">
           <div className="card-body">
@@ -66,11 +63,20 @@ export default function LoginPage() {
                 name="password"
                 type="password"
                 form={form}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value.length < 8 && !passwordPolicy.test(value)) {
+                    setIsValid(false);
+                  } else {
+                    setIsValid(true);
+                    setMsg("");
+                  }
+                }}
               />
               <button
-                disabled={state === "loading"}
+                disabled={state === "loading" || !isValid}
                 type="submit"
-                className="btn bg-orange-400 text-white uppercase w-full"
+                className="btn bg-orange-400 text-white uppercase w-full mt-4"
               >
                 {state === "loading" ? (
                   <span className="loading loading-spinner loading-sm"></span>
