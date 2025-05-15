@@ -81,7 +81,7 @@ export default function LoginPage() {
                     className="btn join-item"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    Show
+                    {showPassword ? "Hide" : "Show"}
                   </button>
                 }
               />
