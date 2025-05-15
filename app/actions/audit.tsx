@@ -39,6 +39,10 @@ export async function getAllAuditLogs() {
       ...doc.data(),
       timestamp: doc.data().timestamp.toDate().toString(),
     })) as AuditLogsType[];
+    logs.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
 
     return {
       success: true,
@@ -60,7 +64,14 @@ export async function getAllRegisteredUsers() {
     const users = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
+      createdAt: doc.data().createdAt.toDate().toString(),
+      updatedAt: doc.data().updatedAt.toDate().toString(),
     })) as RegisteredUserType[];
+
+    users.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
 
     return {
       success: true,

@@ -27,8 +27,8 @@ export default function AuditLogPage() {
               <thead>
                 <tr>
                   <th></th>
-                  <th>User ID</th>
                   <th>Username</th>
+                  <th>IP Address</th>
                   <th>Action</th>
                   <th>Status</th>
                   <th className="text-end">Date</th>
@@ -39,8 +39,10 @@ export default function AuditLogPage() {
                   data?.map((log, index) => (
                     <tr key={index}>
                       <th>{index + 1}</th>
-                      <td>{log.userId}</td>
                       <td>{log.username}</td>
+                      <td>
+                        {log.ipAddress == "::1" ? "127.0.0.1" : log.ipAddress}
+                      </td>
                       <td>{log.action.toUpperCase()}</td>
                       <td>
                         <div className="badge badge-accent rounded-full text-white">

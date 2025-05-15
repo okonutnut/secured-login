@@ -17,6 +17,7 @@ export default function LoginPage() {
 
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
   const [msg, setMsg] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isValid, setIsValid] = useState(false);
 
   async function onSubmit(data: unknown) {
@@ -56,13 +57,15 @@ export default function LoginPage() {
                 name="username"
                 type="text"
                 form={form}
+                required
               />
               <FormInput
                 label="Password"
                 placeholder="Type here..."
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 form={form}
+                required
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value.length < 8 && !passwordPolicy.test(value)) {
@@ -72,6 +75,15 @@ export default function LoginPage() {
                     setMsg("");
                   }
                 }}
+                join={
+                  <button
+                    type="button"
+                    className="btn join-item"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    Show
+                  </button>
+                }
               />
               <button
                 disabled={state === "loading" || !isValid}

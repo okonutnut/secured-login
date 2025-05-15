@@ -25,6 +25,10 @@ export default function RegisterPage() {
   const [openModal, setOpenModal] = useState(false);
   const [codes, setCodes] = useState<string[]>([]);
 
+  // Password
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   useEffect(() => {
     async function fetchCodes() {
       const generatedCodes = await generateRecoveryCodes();
@@ -115,7 +119,7 @@ export default function RegisterPage() {
               <FormInput
                 label="Password"
                 placeholder="Type here..."
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 optional={passMsg}
                 form={form}
@@ -130,11 +134,21 @@ export default function RegisterPage() {
                     setPassMsg("");
                   }
                 }}
+                join={
+                  <button
+                    type="button"
+                    className="w-[70px] btn text-xs join-item"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                }
               />
               <NonFormInput
                 label="Confirm Password"
                 placeholder="Type here..."
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
+                optional={confPass}
                 onChange={(e) => {
                   if (e.target.value != form.getValues("password")) {
                     setIsValid(false);
@@ -145,7 +159,15 @@ export default function RegisterPage() {
                     setState("idle");
                   }
                 }}
-                optional={confPass}
+                join={
+                  <button
+                    type="button"
+                    className="w-[70px] btn text-xs join-item"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? "Hide" : "Show"}
+                  </button>
+                }
               />
               <button
                 type="submit"
