@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { lockUserAccount, unlockUserAccount } from "../actions/audit";
+import { lockUserAccount, unlockUserAccount } from "../../actions/audit";
 import AlertMessage from "@/components/alert";
 
 type ActionButtonProps = {

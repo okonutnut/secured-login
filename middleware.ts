@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   const user = cookieStore.get("user");
   const { pathname, origin } = request.nextUrl;
 
-  if (!user && ["/", "/home", "/audit-logs", "/manage-users"].includes(pathname)) {
+  if (!user && ["/", "/home", "/admin/audit-logs", "/admin/manage-users"].includes(pathname)) {
     return Response.redirect(new URL("/login", origin));
   }
 

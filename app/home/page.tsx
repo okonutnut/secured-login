@@ -9,6 +9,8 @@ import { useState } from "react";
 export default function LoginPage() {
   const router = useRouter();
 
+  const user = GetCurrentUserHook();
+
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
 
   async function Logout() {
@@ -33,13 +35,28 @@ export default function LoginPage() {
             <p className="mx-auto font-medium uppercase text-sm text-center">
               Shop for the best used clothes.
             </p>
-            <p className="font-meduim">
-              Hello, {GetCurrentUserHook()?.fullname}
+            <p className="font-medium text-center mt-4">
+              Hello, <strong>{user?.fullname}</strong>
             </p>
+            {user?.role === "admin" && (
+              <>
+                <button
+                  className="btn btn-outline uppercase w-full mt-4"
+                  onClick={() => router.push("/admin/audit-logs")}
+                >
+                  Audit Logs
+                </button>
+                <button
+                  className="btn btn-outline uppercase w-full"
+                  onClick={() => router.push("/admin/manage-users")}
+                >
+                  Manage Users
+                </button>
+              </>
+            )}
             <button
-              type="submit"
               disabled={state === "loading"}
-              className="btn btn-outline uppercase w-full mt-4"
+              className="btn btn-accent uppercase w-full mt-4 text-white"
               onClick={() => Logout()}
             >
               {state === "loading" ? (

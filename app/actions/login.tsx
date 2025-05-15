@@ -104,6 +104,7 @@ export async function LoginAction({ username, password }: LoginCredentials) {
       value: await encrypt(
         JSON.stringify({
           fullname: user.fullname,
+          role: user.role,
           id: doc.id,
         })
       ),

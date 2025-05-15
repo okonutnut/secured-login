@@ -1,14 +1,26 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { GetAllAuditLogsHook } from "./hooks";
 
 export default function AuditLogPage() {
+  const router = useRouter();
   const data = GetAllAuditLogsHook();
   return (
     <>
       <section className="h-screen w-screen">
         <div className="container p-4 mx-auto">
-          <div className="text-2xl uppercase font-bold">Audit Logs</div>
+          <div className="flex justify-between items-center w-full">
+            <div className="text-2xl uppercase font-bold">Audit Logs</div>
+            <button
+              className="btn btn-outline"
+              onClick={() => router.push("/home")}
+            >
+              Back
+            </button>
+          </div>
+
+          {/* TABLE */}
           <div className="overflow-x-auto">
             <table className="table table-zebra">
               {/* head */}

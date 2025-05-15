@@ -4,15 +4,29 @@ import { formatFirestoreTimestamp } from "@/lib/utils";
 import { GetAllRegisteredUsersHook } from "./hooks";
 import ActionButton from "./action-button";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AuditLogPage() {
+  const router = useRouter();
   const data = GetAllRegisteredUsersHook();
   const [open, setOpen] = useState(false);
   return (
     <>
       <section className="h-screen w-screen">
         <div className="container p-4 mx-auto">
-          <div className="text-2xl uppercase font-bold">Manage Users</div>
+          <div className="flex justify-between items-center w-full">
+            <div className="text-2xl uppercase font-bold text-accent">
+              Manage Users
+            </div>
+            <button
+              className="btn btn-outline"
+              onClick={() => router.push("/home")}
+            >
+              Back
+            </button>
+          </div>
+
+          {/* TABLE */}
           <div className="overflow-x-auto">
             <table className="table table-zebra">
               {/* head */}
@@ -23,7 +37,7 @@ export default function AuditLogPage() {
                   <th>Username</th>
                   <th>Account Status</th>
                   <th className="text-end">Action</th>
-                  <th className="text-end">Date</th>
+                  <th className="text-end">Date Registered</th>
                 </tr>
               </thead>
               <tbody>
